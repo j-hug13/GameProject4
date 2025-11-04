@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using SharpDX.Direct3D9;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace GameProject4
 {
@@ -69,27 +71,149 @@ namespace GameProject4
         public void GenerateDefaultMine()
         {
             Tiles.Clear();
+
+            Random r = new Random();
+
             for (int y = 0; y < Height; y++)
             {
-                string oreType;
-                int hardness;
-                int value;
-
-                if (y < 1) { oreType = "Dirt"; hardness = 1; value = 0; }
-                else if (y < 30) { oreType = "Stone"; hardness = 2; value = 1; }
-                else if (y < 60) { oreType = "Coal"; hardness = 5; value = 1; }
-                else if (y < 80) { oreType = "Copper"; hardness = 7; value = 5; }
-                else if (y < 100) { oreType = "Iron"; hardness = 10; value = 10; }
-                else if (y < 120) { oreType = "Gold"; hardness = 15; value = 25; }
-                else { oreType = "Diamond"; hardness = 20; value = 100; }
-
-                Rectangle source = oreTextures[oreType];
-
                 for (int x = 0; x < Width; x++)
                 {
+                    string oreType;
+                    if (y < 1)
+                    {
+                        oreType = "Dirt";
+                    }
+                    else
+                    {
+                        oreType = GetRandomOre(y, r);
+                    }
+                    
+                    Rectangle source = oreTextures[oreType];
+                    int hardness = GetHardness(oreType);
+                    int value = GetValue(oreType);
+
                     Tiles.Add(new MineTile(new Vector2(x * TileSize, (y * TileSize) + 544), source, hardness, value));
                 }
             }
+        }
+
+        private string GetRandomOre(int depth, Random r)
+        {
+            double odds = r.NextDouble();
+
+            if(depth < 10)
+            {
+                if(odds < 0.98)
+                {
+                    return "Stone";
+                }
+                else
+                {
+                    return "Coal";
+                }
+            }
+            else if (depth < 30)
+            {
+                if (odds < 0.85)
+                {
+                    return "Stone";
+                }
+                else if (odds < 0.97)
+                {
+                    return "Coal";
+                }
+                else
+                {
+                    return "Copper";
+                }
+            }
+            else if (depth < 60)
+            {
+                if (odds < 0.75)
+                {
+                    return "Stone";
+                }
+                else if (odds < 0.9)
+                {
+                    return "Coal";
+                }
+                else if (odds < 0.98)
+                {
+                    return "Copper";
+                }
+                else
+                {
+                    return "Iron";
+                }
+            }
+            else if (depth < 90)
+            {
+                if (odds < 0.65)
+                {
+                    return "Stone";
+                }
+                else if (odds < 0.83)
+                {
+                    return "Coal";
+                }
+                else if (odds < 0.91)
+                {
+                    return "Iron";
+                }
+                else
+                {
+                    return "Gold";
+                }
+            }
+            else
+            {
+                if (odds < 0.6)
+                {
+                    return "Stone";
+                }
+                else if (odds < 0.77)
+                {
+                    return "Iron";
+                }
+                else if (odds < 0.9)
+                {
+                    return "Gold";
+                }
+                else
+                {
+                    return "Diamond";
+                }
+            }
+        }
+
+        private int GetHardness(string oreType)
+        {
+            int hardness = oreType switch
+            {
+                "Stone" => 2,
+                "Coal" => 5,
+                "Copper" => 7,
+                "Iron" => 10,
+                "Gold" => 15,
+                "Diamond" => 20,
+                _ => 1
+            };
+            return hardness;
+        }
+
+        private int GetValue(string oreType)
+        {
+            int value = oreType switch
+            {
+                "Stone" => 1,
+                "Coal" => 3,
+                "Copper" => 8,
+                "Iron" => 15,
+                "Gold" => 30,
+                "Diamond" => 100,
+                _ => 0
+            };
+            return value;
         }
 
         public void LoadFromFile(GameSaveData save)
